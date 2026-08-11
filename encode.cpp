@@ -83,3 +83,51 @@ std :: expected <void, Status> lsb :: encode_size_to_lsb(int size, std :: ifstre
 
     return {};
 }
+
+std :: size_t bmp::get_image_size_for_bmp(std :: ifstream& fptr_src_image)
+{
+    uint32_t width, height;
+    fptr_src_image.seekg(18);
+    fptr_src_image.read(reinterpret_cast<char*> (&width), sizeof(uint32_t));
+    fptr_src_image.read(reinterpret_cast<char*> (&height), sizeof(uint32_t));
+
+    return static_cast<size_t>(width) * height * 3;
+}
+
+std::size_t bmp::get_file_size(std::ifstream& fptr)
+{
+    fptr.seekg(0, std::ios::end);
+    return static_cast<std :: size_t>(fptr.tellg());
+}
+
+std :: expected <void, Status> bmp :: copy_bmp_header(std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
+{
+    fptr_src_image.seekg(0);
+    std :: array<char, header_size> header;
+
+    fptr_src_image.read(header.data(), header_size);
+    if(!fptr_src_image)
+    {
+        return std :: unexpected(Status :: e_failure);
+    }
+
+    fptr_stego_image.write(header.data(), header_size);
+    if(!fptr_stego_image)
+    {
+        return std :: unexpected(Status :: e_failure);
+    }
+
+    return {};
+}
+
+std :: expected <void, Status> bmp :: copy_remaining_img_data(std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
+{
+    fptr_stego_image << fptr_src_image.rdbuf();
+
+    if(!fptr_stego_image)
+    {
+        return std :: unexpected(Status :: e_failure);
+    }
+
+    return {};
+}
