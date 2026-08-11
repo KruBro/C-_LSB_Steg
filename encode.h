@@ -1,0 +1,35 @@
+#ifndef ENCODE_H
+#define ENCODE_H
+
+#include <string>
+#include <fstream>
+#include <expected>
+#include "types.h"
+
+class EncodeInfo {
+private:
+    std::string src_image_fname;
+    std::ifstream fptr_src_image;
+    size_t image_capacity;
+
+    std::string secret_fname;
+    std::ifstream fptr_secret;
+    std::string extn_secret_file;
+    size_t size_secret_file;
+
+    std::string stego_image_fname;
+    std::ofstream fptr_stego_image;
+
+    EncodeInfo(std::string src, std::string secret, std::string ext, std::string stego) :
+    src_image_fname(src), fptr_src_image(src), secret_fname(secret), fptr_secret(secret), 
+    extn_secret_file(ext), stego_image_fname(stego), fptr_stego_image(stego), 
+    image_capacity(0), size_secret_file(0)
+    {
+        ;
+    }
+
+public:
+    static std::expected <EncodeInfo, Status> create(char *argv[]);
+};
+
+#endif
