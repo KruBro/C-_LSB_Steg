@@ -25,3 +25,61 @@ std::expected<EncodeInfo, Status> EncodeInfo::create(char *argv[])
 
     return EncodeInfo(src, secret, ext, stego);
 }
+
+void lsb :: encode_byte_to_lsb(char data, std :: span<char, bits_per_byte> image_buffer)
+{
+    for(std :: size_t i = 0; i < bits_per_byte; i++)
+    {
+        image_buffer[i] = ((image_buffer[i] & 0xFE) | ((data >> i) & 1));
+    }
+}
+
+std :: expected <void, Status> lsb :: encode_data_to_image(std :: span<char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
+{
+    std :: array <char, lsb :: bits_per_byte> image_buffer;
+    for(std :: size_t i = 0; i < data.size(); i++)
+    {
+        fptr_src_image.read(image_buffer.data(), lsb :: bits_per_byte);
+        if(!fptr_src_image)
+        {
+            return std :: unexpected(Status :: e_failure);
+        }
+
+        encode_byte_to_lsb(data[i], std :: span <char, bits_per_byte> (image_buffer));
+
+        fptr_stego_image.write(image_buffer.data(), lsb :: bits_per_byte);
+
+        if(!fptr_stego_image)
+        {
+            return std :: unexpected(Status :: e_failure);
+        }
+    }
+
+    return {};
+}
+
+std :: expected <void, Status> lsb :: encode_size_to_lsb(int size, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
+{
+    std :: array <char, 32> buffer;
+
+    fptr_src_image.read(buffer.data(), 32);
+
+    if(!fptr_src_image)
+    {
+        return std :: unexpected(Status :: e_failure);
+    }
+
+    for(std :: size_t i = 0; i < 32; i++)
+    {
+        buffer[i] = ((buffer[i] & 0xFE) | ((size >> i) & 1));
+    }
+
+    fptr_stego_image.write(buffer.data(), 32);
+
+    if(!fptr_stego_image)
+    {
+        return std :: unexpected(Status :: e_failure);
+    }
+
+    return {};
+}
