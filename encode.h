@@ -10,6 +10,8 @@
 #include <cstdint>
 #include "types.h"
 #include "common.h"
+#include "lsb.h"
+#include "bmp.h"
 
 class EncodeInfo {
 private:
@@ -43,21 +45,5 @@ public:
     std :: expected <void, Status> encode_secret_file_data();
     std :: expected <void, Status> do_encoding();
 };
-
-namespace lsb{
-    constexpr std :: size_t bits_per_byte = 8;
-    void encode_byte_to_lsb(char data, std :: span<char, bits_per_byte> image_buffer);
-    std :: expected <void, Status> encode_data_to_image(std :: span<const char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
-    std :: expected <void, Status> encode_size_to_lsb(int size, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
-}
-
-namespace bmp{
-    constexpr std :: size_t header_size = 54;
-    std :: size_t get_image_size_for_bmp(std :: ifstream& fptr_src_image);
-    std::size_t get_file_size(std::ifstream& fptr);
-    std :: expected <void, Status> copy_bmp_header(std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
-    std :: expected <void, Status> copy_remaining_img_data(std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
-}
-
 
 #endif
