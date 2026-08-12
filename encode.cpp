@@ -34,7 +34,7 @@ void lsb :: encode_byte_to_lsb(char data, std :: span<char, bits_per_byte> image
     }
 }
 
-std :: expected <void, Status> lsb :: encode_data_to_image(std :: span<char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
+std :: expected <void, Status> lsb :: encode_data_to_image(std :: span<const char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image)
 {
     std :: array <char, lsb :: bits_per_byte> image_buffer;
     for(std :: size_t i = 0; i < data.size(); i++)
@@ -127,6 +127,70 @@ std :: expected <void, Status> bmp :: copy_remaining_img_data(std :: ifstream& f
     if(!fptr_stego_image)
     {
         return std :: unexpected(Status :: e_failure);
+    }
+
+    return {};
+}
+
+bool EncodeInfo::check_capacity()
+{
+    this->image_capacity = bmp::get_image_size_for_bmp(this->fptr_src_image);
+    this->size_secret_file = bmp::get_file_size(this->fptr_secret);
+
+    std :: size_t required_bytes = (((magic_string.size()) + (sizeof(int)) +
+    (this->extn_secret_file.size()) + (sizeof(int)) + 
+    (this->size_secret_file)) * 8);
+
+    return (this->image_capacity - bmp::header_size) > required_bytes;
+}
+
+std :: expected <void, Status> EncodeInfo :: encode_magic_string()
+{
+    return lsb :: encode_data_to_image(magic_string, this->fptr_src_image, this->fptr_stego_image);
+}
+
+std :: expected <void, Status> EncodeInfo::encode_secret_file_extn_size()
+{
+    return lsb :: encode_size_to_lsb(static_cast<int>(this->extn_secret_file.size()), this->fptr_src_image, this->fptr_stego_image);
+}
+
+std :: expected <void, Status> EncodeInfo :: encode_secret_file_extn()
+{
+    return lsb :: encode_data_to_image(std :: span<const char>(this->extn_secret_file.data(), this->extn_secret_file.size()), 
+        this->fptr_src_image, this->fptr_stego_image);
+}
+
+std :: expected <void, Status> EncodeInfo :: encode_secret_file_size()
+{
+    return lsb :: encode_size_to_lsb(static_cast<int>(this->size_secret_file),
+    this->fptr_src_image, this->fptr_stego_image);
+}
+
+std :: expected <void, Status> EncodeInfo :: encode_secret_file_data()
+{
+    std :: array <char, 1024> buffer;
+    std ::size_t remaining = this->size_secret_file;
+
+    this->fptr_secret.seekg(0);
+
+    while(remaining > 0)
+    {
+        std :: size_t to_read = (remaining < 1024) ? remaining : 1024;
+
+        this->fptr_secret.read(buffer.data(), to_read);
+        if(!(this->fptr_secret))
+        {
+            return std :: unexpected(Status :: e_failure);
+        }
+        std :: size_t read_count = this->fptr_secret.gcount();
+
+        if(!(lsb :: encode_data_to_image(std :: span<const char>((buffer.data()), read_count), 
+            this->fptr_src_image, this->fptr_stego_image)))
+        {
+            return std :: unexpected(Status :: e_failure);
+        }
+
+        remaining -= read_count;
     }
 
     return {};

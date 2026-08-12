@@ -8,6 +8,7 @@
 #include <array>
 #include <cstdint>
 #include "types.h"
+#include "common.h"
 
 class EncodeInfo {
 private:
@@ -33,12 +34,18 @@ private:
 
 public:
     static std::expected <EncodeInfo, Status> create(char *argv[]);
+    bool check_capacity();
+    std :: expected <void, Status> encode_magic_string();
+    std :: expected <void, Status> encode_secret_file_extn_size();
+    std :: expected <void, Status> encode_secret_file_extn();
+    std :: expected <void, Status> encode_secret_file_size();
+    std :: expected <void, Status> encode_secret_file_data();
 };
 
 namespace lsb{
     constexpr std :: size_t bits_per_byte = 8;
     void encode_byte_to_lsb(char data, std :: span<char, bits_per_byte> image_buffer);
-    std :: expected <void, Status> encode_data_to_image(std :: span<char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
+    std :: expected <void, Status> encode_data_to_image(std :: span<const char> data, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
     std :: expected <void, Status> encode_size_to_lsb(int size, std :: ifstream& fptr_src_image, std :: ofstream& fptr_stego_image);
 }
 
