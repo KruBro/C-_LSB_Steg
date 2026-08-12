@@ -1,6 +1,7 @@
 #ifndef ENCODE_H
 #define ENCODE_H
 
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <expected>
@@ -40,6 +41,7 @@ public:
     std :: expected <void, Status> encode_secret_file_extn();
     std :: expected <void, Status> encode_secret_file_size();
     std :: expected <void, Status> encode_secret_file_data();
+    std :: expected <void, Status> do_encoding();
 };
 
 namespace lsb{

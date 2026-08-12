@@ -195,3 +195,67 @@ std :: expected <void, Status> EncodeInfo :: encode_secret_file_data()
 
     return {};
 }
+
+std :: expected <void, Status> EncodeInfo :: do_encoding()
+{
+    if(!check_capacity())
+    {
+        std::cout << "[FAILURE] : Image Capacity Too Small" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+
+    std :: cout << "[SUCCESS] : Check Capacity"  << std :: endl;
+
+    if(!(bmp::copy_bmp_header(fptr_src_image, fptr_stego_image)))
+    {
+        std :: cout << "[FAILURE] : Header File Copy Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCESS] : Header File Copied" << std :: endl;
+
+    if(!(encode_magic_string()))
+    {
+        std :: cout << "[FAILURE] : Magic String Encoding Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCESS] : Magic String Encoded" << std :: endl;
+
+    if(!(encode_secret_file_extn_size()))
+    {
+        std :: cout << "[FAILURE] : Secret File Extension Size Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+
+    std :: cout << "[SUCCESS] : Secret File Extension Encoded" << std :: endl;
+
+    if(!(encode_secret_file_extn()))
+    {
+        std :: cout << "[FAILURE] : Secret File Extension Encoding Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCESS] : Secret File Extension Encoded" << std :: endl;
+
+    if(!(encode_secret_file_size()))
+    {
+        std :: cout << "[FAILURE] : Secret File Size Encoding Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCESS] : Secret File Size Encoded" << std :: endl;
+
+    if(!(encode_secret_file_data()))
+    {
+        std :: cout << "[FAILURE] : Secret File Data Encoding Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCESS] : Secret File Data Encoded" << std :: endl;
+
+    if(!(bmp::copy_remaining_img_data(fptr_src_image, fptr_stego_image)))
+    {
+        std :: cout << "[FAILURE] : Remaining Data Copy Failed" << std :: endl;
+        return std :: unexpected (Status::e_failure);
+    }
+    std :: cout << "[SUCCES] : Remaining Data Copied" << std :: endl;
+
+
+    return {};
+}
